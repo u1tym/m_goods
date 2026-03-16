@@ -28,6 +28,10 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+4. API ドキュメントの確認
+
+ブラウザで `http://localhost:8000/docs` を開くと、Swagger UI から各エンドポイントを試すことができます。
+
 ### 主なエンドポイント
 
 仕様に基づき、以下を実装しています。
