@@ -307,15 +307,15 @@
   - `media_id` (number, 必須)
   - `artist_id` (number, 必須)
   - `title` (string, 必須)
-  - `release_date` (string, date, 任意)
-  - `memo` (string, 任意)
+  - `release_date` (string, date, 任意。省略時は当日)
+  - `memo` (string, 任意。省略時は `""`)
   - `is_owned` (boolean, 任意。省略時は false)
-  - `code_number` (string, 任意)
+  - `code_number` (string, 任意。省略時は `""`)
   - `image_type` (string, 任意)
   - `image_data` (binary/Base64 等, 任意)
 - **出力**: `{ "id": number }`（登録された goods の id）
 - **処理**:
-  - `goods` に 1 件挿入する。`is_deleted` が指定されなければ `false`、`is_owned` が指定されなければ `false`。
+  - `goods` に 1 件挿入する。`is_deleted` が指定されなければ `false`、`is_owned` が指定されなければ `false`。`release_date` 省略時は当日、`memo` 省略時は `""`、`code_number` 省略時は `""` を登録する。
   - `goods_images` には、`image_type` と `image_data` の**両方が**指定された場合のみレコードを追加する（1件目として display_order=1 等でよい）。
 
 ---

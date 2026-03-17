@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Iterable, List, Sequence
 
 from sqlalchemy import Select, distinct, select
@@ -250,15 +251,18 @@ def get_goods_by_id(db: Session, goods_id: int) -> GoodsRelatedItem:
 
 
 def create_goods(db: Session, data: GoodsCreate) -> int:
+    release_date_value: date = data.release_date if data.release_date is not None else date.today()
+    memo_value: str = data.memo if data.memo is not None else ""
+    code_number_value: str = data.code_number if data.code_number is not None else ""
     goods = Goods(
         media_id=data.media_id,
         artist_id=data.artist_id,
         title=data.title,
-        release_date=data.release_date or data.release_date,
-        memo=data.memo,
+        release_date=release_date_value,
+        memo=memo_value,
         is_deleted=False,
         is_owned=data.is_owned if data.is_owned is not None else False,
-        code_number=data.code_number,
+        code_number=code_number_value,
     )
     db.add(goods)
     db.flush()
