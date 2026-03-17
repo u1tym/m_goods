@@ -220,6 +220,35 @@ def get_related_artists_by_person(db: Session, person_id: int) -> List[ArtistSim
     return [ArtistSimple.model_validate(a) for a in artist_rows]
 
 
+def get_goods_by_id(db: Session, goods_id: int) -> GoodsRelatedItem:
+    stmt: Select[tuple[Goods, Media, Artist, GoodsImage | None]] = (
+        select(Goods, Media, Artist, GoodsImage)
+        .join(Media, Goods.media_id == Media.id)
+        .join(Artist, Goods.artist_id == Artist.id)
+        .join(GoodsImage, GoodsImage.goods_id == Goods.id, isouter=True)
+        .where(Goods.id == goods_id)
+        .order_by(GoodsImage.display_order)
+    )
+    row = db.execute(stmt).first()
+    if row is None:
+        raise ValueError("Goods not found")
+    goods, media, artist, image = row
+    return GoodsRelatedItem(
+        goods_id=goods.id,
+        media_id=goods.media_id,
+        artist_id=goods.artist_id,
+        media_name=media.name,
+        artist_name=artist.name,
+        title=goods.title,
+        release_date=goods.release_date,
+        memo=goods.memo,
+        is_owned=goods.is_owned,
+        code_number=goods.code_number,
+        image_type=image.image_type if image else None,
+        image_data=image.image_data if image else None,
+    )
+
+
 def create_goods(db: Session, data: GoodsCreate) -> int:
     goods = Goods(
         media_id=data.media_id,

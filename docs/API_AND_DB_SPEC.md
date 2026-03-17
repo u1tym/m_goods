@@ -291,7 +291,16 @@
 
 ---
 
-### API-14: goods 追加
+### API-14: goods 1件取得
+
+- **メソッド・パス**: `GET /goods/{goods_id}`
+- **入力**: パス `goods_id` (number)
+- **出力**: オブジェクト 1 件。API-3 の出力要素と同じ形（`goods_id`, `media_id`, `artist_id`, `media_name`, `artist_name`, `title`, `release_date`, `memo`, `is_owned`, `code_number`, `image_type`, `image_data`）。該当する goods が存在しなければ 404 を返す。
+- **処理**: `goods` の `id` が `goods_id` と一致するレコードを、`media`・`artists`・`goods_images`（display_order 順の先頭 1 件）と結合して上記の形で返す。
+
+---
+
+### API-15: goods 追加
 
 - **メソッド・パス**: `POST /goods`
 - **入力（Body）**: 以下。必須は `media_id`, `artist_id`, `title`。
@@ -311,10 +320,10 @@
 
 ---
 
-### API-15: goods 更新
+### API-16: goods 更新
 
 - **メソッド・パス**: `PUT /goods/{goods_id}`
-- **入力**: パス `goods_id` (number)、Body に `id` (number) および API-14 と同様のフィールド（`media_id`, `artist_id`, `title` 必須）。パスの `goods_id` と Body の `id` は一致させること。
+- **入力**: パス `goods_id` (number)、Body に `id` (number) および API-15 と同様のフィールド（`media_id`, `artist_id`, `title` 必須）。パスの `goods_id` と Body の `id` は一致させること。
 - **出力**: `{ "id": number }`（更新した goods の id）
 - **処理**:
   - `goods` の `id` が `goods_id` と一致するレコードを、入力の内容で更新する。該当がなければ 404。
@@ -339,8 +348,9 @@
 | 11   | GET      | /media                       | media一覧取得      |
 | 12   | POST     | /media                       | media追加          |
 | 13   | PUT      | /media/{media_id}            | media更新          |
-| 14   | POST     | /goods                       | goods追加          |
-| 15   | PUT      | /goods/{goods_id}            | goods更新          |
+| 14   | GET      | /goods/{goods_id}            | goods 1件取得      |
+| 15   | POST     | /goods                       | goods追加          |
+| 16   | PUT      | /goods/{goods_id}            | goods更新          |
 
 ---
 

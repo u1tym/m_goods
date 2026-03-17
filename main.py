@@ -11,6 +11,7 @@ from crud import (
     create_media,
     create_person,
     get_artist_detail,
+    get_goods_by_id,
     get_related_artists_by_person,
     get_related_goods,
     get_related_media_by_person,
@@ -140,6 +141,15 @@ def update_media_endpoint(media_id: int, data: MediaUpdate, db: Session = Depend
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Path id and body id mismatch")
     try:
         return update_media(db, media_id=media_id, name=data.name)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@app.get("/goods/{goods_id}", response_model=GoodsRelatedItem)
+def get_goods(goods_id: int, db: Session = Depends(get_db)) -> GoodsRelatedItem:
+    """goods 1件取得."""
+    try:
+        return get_goods_by_id(db, goods_id=goods_id)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
