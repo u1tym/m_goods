@@ -1,0 +1,205 @@
+DBはPostgreSQLで、既存で、レイアウトは以下
+
+DBの接続先は、.envで作成して。
+初期値は、
+Server: localhost
+Database: tamtdb
+Port: 5432
+Username: tamtuser
+Password: TAMTTAMT
+にして
+
+Table "public.media"
+   Column   |            Type             | Collation | Nullable |              Default
+------------+-----------------------------+-----------+----------+-----------------------------------
+ id         | integer                     |           | not null | nextval('media_id_seq'::regclass)
+ name       | character varying           |           | not null |
+ created_at | timestamp without time zone |           | not null | now()
+ updated_at | timestamp without time zone |           | not null | now()
+Indexes:
+    "media_pkey" PRIMARY KEY, btree (id)
+    "idx_media_name" btree (name)
+    "ix_media_id" btree (id)
+Referenced by:
+    TABLE "goods" CONSTRAINT "goods_media_id_fkey" FOREIGN KEY (media_id) REFERENCES media(id)
+
+
+Table "public.artists"
+   Column   |            Type             | Collation | Nullable |               Default
+------------+-----------------------------+-----------+----------+-------------------------------------
+ id         | integer                     |           | not null | nextval('artists_id_seq'::regclass)
+ name       | character varying           |           | not null |
+ created_at | timestamp without time zone |           | not null | now()
+ updated_at | timestamp without time zone |           | not null | now()
+Indexes:
+    "artists_pkey" PRIMARY KEY, btree (id)
+    "idx_artists_name" btree (name)
+    "ix_artists_id" btree (id)
+Referenced by:
+    TABLE "artist_persons" CONSTRAINT "artist_persons_artist_id_fkey" FOREIGN KEY (artist_id) REFERENCES artists(id)
+    TABLE "goods" CONSTRAINT "goods_artist_id_fkey" FOREIGN KEY (artist_id) REFERENCES artists(id)
+
+
+Table "public.persons"
+   Column   |            Type             | Collation | Nullable |               Default
+------------+-----------------------------+-----------+----------+-------------------------------------
+ id         | integer                     |           | not null | nextval('persons_id_seq'::regclass)
+ name       | character varying           |           | not null |
+ created_at | timestamp without time zone |           | not null | now()
+ updated_at | timestamp without time zone |           | not null | now()
+Indexes:
+    "persons_pkey" PRIMARY KEY, btree (id)
+    "idx_persons_name" btree (name)
+    "ix_persons_id" btree (id)
+Referenced by:
+    TABLE "artist_persons" CONSTRAINT "artist_persons_person_id_fkey" FOREIGN KEY (person_id) REFERENCES persons(id)
+
+
+Table "public.artist_persons"
+   Column   |            Type             | Collation | Nullable |                  Default
+------------+-----------------------------+-----------+----------+--------------------------------------------
+ id         | integer                     |           | not null | nextval('artist_persons_id_seq'::regclass)
+ artist_id  | integer                     |           | not null |
+ person_id  | integer                     |           | not null |
+ created_at | timestamp without time zone |           | not null | now()
+Indexes:
+    "artist_persons_pkey" PRIMARY KEY, btree (id)
+    "idx_artist_persons_artist_id" btree (artist_id)
+    "idx_artist_persons_person_id" btree (person_id)
+    "ix_artist_persons_id" btree (id)
+Foreign-key constraints:
+    "artist_persons_artist_id_fkey" FOREIGN KEY (artist_id) REFERENCES artists(id)
+    "artist_persons_person_id_fkey" FOREIGN KEY (person_id) REFERENCES persons(id)
+
+
+Table "public.goods"
+    Column    |            Type             | Collation | Nullable |              Default
+--------------+-----------------------------+-----------+----------+-----------------------------------
+ id           | integer                     |           | not null | nextval('goods_id_seq'::regclass)
+ media_id     | integer                     |           | not null |
+ artist_id    | integer                     |           | not null |
+ title        | character varying           |           | not null |
+ release_date | date                        |           | not null |
+ memo         | text                        |           |          |
+ is_deleted   | boolean                     |           | not null |
+ created_at   | timestamp without time zone |           | not null | now()
+ updated_at   | timestamp without time zone |           | not null | now()
+ is_owned     | boolean                     |           | not null | false
+ code_number  | character varying           |           |          |
+Indexes:
+    "goods_pkey" PRIMARY KEY, btree (id)
+    "idx_goods_artist_id" btree (artist_id)
+    "idx_goods_is_deleted" btree (is_deleted)
+    "idx_goods_media_id" btree (media_id)
+    "idx_goods_release_date" btree (release_date)
+    "ix_goods_id" btree (id)
+Foreign-key constraints:
+    "goods_artist_id_fkey" FOREIGN KEY (artist_id) REFERENCES artists(id)
+    "goods_media_id_fkey" FOREIGN KEY (media_id) REFERENCES media(id)
+Referenced by:
+    TABLE "goods_images" CONSTRAINT "goods_images_goods_id_fkey" FOREIGN KEY (goods_id) REFERENCES goods(id)
+
+
+Table "public.goods_images"
+    Column     |            Type             | Collation | Nullable |                 Default
+---------------+-----------------------------+-----------+----------+------------------------------------------
+ id            | integer                     |           | not null | nextval('goods_images_id_seq'::regclass)
+ goods_id      | integer                     |           | not null |
+ image_data    | bytea                       |           | not null |
+ image_type    | character varying           |           | not null |
+ display_order | integer                     |           | not null |
+ created_at    | timestamp without time zone |           | not null | now()
+Indexes:
+    "goods_images_pkey" PRIMARY KEY, btree (id)
+    "idx_goods_images_display_order" btree (display_order)
+    "idx_goods_images_goods_id" btree (goods_id)
+    "ix_goods_images_id" btree (id)
+Foreign-key constraints:
+    "goods_images_goods_id_fkey" FOREIGN KEY (goods_id) REFERENCES goods(id)
+
+
+pythonで、型ヒント句付けて
+fastapiで以下を作成して。
+
+1) person一覧取得
+   入力 なし
+   出力 personsのid, nameのリスト
+
+2) 関連media一覧取得
+   入力 personsのid
+   出力 2-1 artist_personsを検索して、person_idが一致するartist_idを取得
+        2-2 goodsを検索して、artist_idが2-1で取得した値と一致し、is_deletedがfalseのものの情報のmedia_idを取得する
+        2-3 mediaを検索して、idが2-2で取得した値と一致するid、nameを重複なしで出力として返す
+
+3) 関連good一覧取得
+   入力 personのid、mediaのidのリスト
+   出力 3-1 artist_personsを検索して、person_idが一致するartist_idを取得
+        3-2 goodsを検索して、artist_idが3-1artist_idが3-1で取得した値と一致し、media_idが入力のmediaのidのリストに含まれており、is_deletedがfalseのものの情報を取得する
+        3-3 3-2で取得した情報から、以下の情報のリストを返す
+            goodsのid、mediaのname、artistのname、goodsのtitle、goodsのrelease_date、goodsのmemo、goodsのis_owned、goodsのcode_number、goods_imagesのimage_type、goods_imagesのimage_data
+
+4) 関連artist一覧取得
+   入力 personsのid
+   出力 4-1 artist_personsを検索して、person_idが一致するartist_idを取得
+        4-2 artistsを検索して、idが4-1で取得したartist_idと一致する情報を取得
+        4-3 4-2で取得した情報から、以下の情報のリストを返す
+            artistsのid、artistsのname
+
+5) person追加
+   入力 personsのname
+   処理 personsにレコードを追加する。
+
+6) person更新
+   入力 personsのid、name
+   処理 personsのidが一致するレコードのnameを更新する
+
+7) artist一覧取得
+   入力 なし
+   出力 artistsのid、nameのリストを返す
+
+8) artist情報取得
+   入力 artistsのid
+   出力 8-1 artistsを検索し、idが入力のidと一致する情報を取得する
+        8-2 artist_personsを検索し、artist_idが入力のidと一致する情報を取得する
+        8-3 personsを検索し、idが8-2のperson_idと一致する情報を取得する
+        8-4 8-1～8-3をもとに、以下の情報を返す
+            artistsのname、personsのidとnameのリスト
+            
+9) artist追加
+   入力 artistsのname
+   処理 artistsにレコードを追加する。
+
+10) artist更新
+   入力 artistsのid、name、personsのidのリスト
+   処理 artistsのidが一致するレコードのnameを更新する
+        artist_personsを検索して、入力で指定された「artistsのid、personsのid」の組と比較する
+        入力で指定されたものにあるけど、DBに無い場合は、レコードを登録する
+        入力で指定されたものにないけど、DBにある場合は、レコードを削除する
+
+11) media一覧取得
+   入力 なし
+   出力 mediaを検索し、idとnameのリストを返す
+
+12) media追加
+   入力 mediaのname
+   処理 入力された内容で、mediaのレコードを追加する
+   
+13) media更新処理
+   入力 mediaのid、name
+   処理 入力された内容で、mediaのレコードを更新する
+
+14) goods追加
+   入力 mediaのid、artistのid、title、release_date、memo、is_owned、code_number、image_type、image_data
+        必須は、mediaのid、artistのid、title
+   処理 テーブル goods、goods_imagesに登録する。
+        goods_imagesは、image_type、image_dataの両方が指定された場合のみ
+        is_deletedが指定されない場合は、false
+        is_ownedが指定されない場合は、false
+
+15) goods更新
+   入力 mediaのid、artistのid、title、release_date、memo、is_owned、code_number、image_type、image_data
+        必須は、mediaのid、artistのid、title
+   処理 テーブル goods、goods_imagesを更新する。
+
+
+
