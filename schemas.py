@@ -110,6 +110,8 @@ class GoodsUpdate(GoodsBase):
 
 class GoodsRelatedItem(BaseModel):
     goods_id: int
+    media_id: int
+    artist_id: int
     media_name: str
     artist_name: str
     title: str

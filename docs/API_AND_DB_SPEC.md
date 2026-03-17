@@ -171,6 +171,8 @@
 - **入力（Body）**: `{ "person_id": number, "media_ids": number[] }`
 - **出力**: オブジェクトの配列。各要素は次のフィールドを持つ。
   - `goods_id` (number): goods.id
+  - `media_id` (number): goods.media_id
+  - `artist_id` (number): goods.artist_id
   - `media_name` (string): media.name
   - `artist_name` (string): artists.name
   - `title` (string): goods.title

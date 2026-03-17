@@ -192,6 +192,8 @@ def get_related_goods(
         result.append(
             GoodsRelatedItem(
                 goods_id=goods.id,
+                media_id=goods.media_id,
+                artist_id=goods.artist_id,
                 media_name=media.name,
                 artist_name=artist.name,
                 title=goods.title,
