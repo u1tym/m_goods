@@ -301,9 +301,9 @@ def update_goods(db: Session, data: GoodsUpdate) -> None:
     goods.title = data.title
     if data.release_date is not None:
         goods.release_date = data.release_date
-    goods.memo = data.memo
+    goods.memo = data.memo if data.memo is not None else ""
     goods.is_owned = data.is_owned if data.is_owned is not None else False
-    goods.code_number = data.code_number
+    goods.code_number = data.code_number if data.code_number is not None else ""
 
     stmt_images: Select[tuple[GoodsImage]] = select(GoodsImage).where(GoodsImage.goods_id == goods.id)
     existing_images: Sequence[GoodsImage] = db.execute(stmt_images).scalars().all()
