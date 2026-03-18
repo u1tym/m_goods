@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from crud import (
@@ -24,6 +24,7 @@ from crud import (
     update_person,
 )
 from database import get_db
+from logger_config import get_logger
 from schemas import (
     ArtistCreate,
     ArtistDetail,
@@ -44,6 +45,38 @@ from schemas import (
 )
 
 app = FastAPI(title="m_goods API")
+api_logger = get_logger("api")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    body_bytes = await request.body()
+    try:
+        body_text = body_bytes.decode("utf-8", errors="ignore")
+    except Exception:
+        body_text = "<un-decodable>"
+
+    api_logger.info(
+        "REQUEST method=%s path=%s query=%s body=%s",
+        request.method,
+        request.url.path,
+        request.url.query,
+        body_text,
+    )
+
+    try:
+        response = await call_next(request)
+    except Exception:
+        api_logger.exception("ERROR method=%s path=%s", request.method, request.url.path)
+        raise
+
+    api_logger.info(
+        "RESPONSE method=%s path=%s status=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+    )
+    return response
 
 
 @app.get("/persons", response_model=List[PersonSimple])
