@@ -128,6 +128,8 @@
 | display_order | integer                    | NOT NULL | -          | 表示順       |
 | created_at    | timestamp without time zone| NOT NULL | now()      | 作成日時     |
 
+- **画像データの格納形式（重要）**: DB には `goods_images.image_data` を **Base64 ではなく生のバイナリ**（`bytea`）として格納する。
+
 - **主キー**: `id`
 - **外部キー**: `goods_id` → `goods(id)`
 - **インデックス**: `id`, `goods_id`, `display_order`
@@ -137,7 +139,8 @@
 ## 2. API 仕様（REST / FastAPI）
 
 - **ベースURL**: デプロイ環境に依存（例: `http://localhost:8000`）
-- **Content-Type**: リクエスト・レスポンスとも JSON（画像データは Base64 等でエンコードして扱う実装が一般的）
+- **Content-Type**: リクエスト・レスポンスとも JSON
+- **画像データの扱い（重要）**: DB には `bytea` で生バイナリ保存する一方、API(JSON) では `image_data` を **Base64 文字列**として入出力する（リクエスト: Base64文字列 → サーバ側でデコードして `bytea` 保存／レスポンス: `bytea` → Base64文字列にエンコードして返却）。
 - **エラー**: 4xx/5xx で HTTP ステータスと `detail` 等のメッセージを返す。
 
 以下、エンドポイントごとに「番号」「メソッド・パス」「入力」「出力」「処理内容」を定義する。
