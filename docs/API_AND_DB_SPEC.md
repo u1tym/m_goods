@@ -181,7 +181,7 @@
   - `is_owned` (boolean): goods.is_owned
   - `code_number` (string | null): goods.code_number
   - `image_type` (string | null): goods_images.image_type（1件目または代表1件）
-  - `image_data` (binary/Base64 等 | null): goods_images.image_data（同上）
+  - `image_data` (string | null): goods_images.image_data を Base64 文字列にしたもの（同上）
 - **処理**:
   1. `artist_persons` を検索し、`person_id` が入力の `person_id` と一致する `artist_id` の集合を取得する。
   2. `goods` を検索し、`artist_id` が 1 の集合に含まれ、`media_id` が入力の `media_ids` に含まれ、かつ `is_deleted` が `false` であるレコードを取得する。
@@ -295,7 +295,7 @@
 
 - **メソッド・パス**: `GET /goods/{goods_id}`
 - **入力**: パス `goods_id` (number)
-- **出力**: オブジェクト 1 件。API-3 の出力要素と同じ形（`goods_id`, `media_id`, `artist_id`, `media_name`, `artist_name`, `title`, `release_date`, `memo`, `is_owned`, `code_number`, `image_type`, `image_data`）。該当する goods が存在しなければ 404 を返す。
+- **出力**: オブジェクト 1 件。API-3 の出力要素と同じ形（`goods_id`, `media_id`, `artist_id`, `media_name`, `artist_name`, `title`, `release_date`, `memo`, `is_owned`, `code_number`, `image_type`, `image_data`）。`image_data` は Base64 文字列。該当する goods が存在しなければ 404 を返す。
 - **処理**: `goods` の `id` が `goods_id` と一致するレコードを、`media`・`artists`・`goods_images`（display_order 順の先頭 1 件）と結合して上記の形で返す。
 
 ---
@@ -312,7 +312,7 @@
   - `is_owned` (boolean, 任意。省略時は false)
   - `code_number` (string, 任意。省略時は `""`)
   - `image_type` (string, 任意)
-  - `image_data` (binary/Base64 等, 任意)
+  - `image_data` (string, 任意。Base64 文字列)
 - **出力**: `{ "id": number }`（登録された goods の id）
 - **処理**:
   - `goods` に 1 件挿入する。`is_deleted` が指定されなければ `false`、`is_owned` が指定されなければ `false`。`release_date` 省略時は当日、`memo` 省略時は `""`、`code_number` 省略時は `""` を登録する。

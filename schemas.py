@@ -120,7 +120,7 @@ class GoodsRelatedItem(BaseModel):
     is_owned: bool
     code_number: Optional[str]
     image_type: Optional[str]
-    image_data: Optional[bytes]
+    image_data: Optional[str]
 
 
 class RelatedMediaRequest(BaseModel):

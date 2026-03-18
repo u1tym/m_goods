@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from typing import Iterable, List, Sequence
+import base64
 
 from sqlalchemy import Select, distinct, select
 from sqlalchemy.orm import Session
@@ -190,6 +191,11 @@ def get_related_goods(
 
     result: List[GoodsRelatedItem] = []
     for goods, media, artist, image in rows:
+        image_type_val: str | None = image.image_type if image else None
+        if image and image.image_data is not None:
+            image_data_val: str | None = base64.b64encode(image.image_data).decode("ascii")
+        else:
+            image_data_val = None
         result.append(
             GoodsRelatedItem(
                 goods_id=goods.id,
@@ -202,8 +208,8 @@ def get_related_goods(
                 memo=goods.memo,
                 is_owned=goods.is_owned,
                 code_number=goods.code_number,
-                image_type=image.image_type if image else None,
-                image_data=image.image_data if image else None,
+                image_type=image_type_val,
+                image_data=image_data_val,
             )
         )
 
@@ -234,6 +240,11 @@ def get_goods_by_id(db: Session, goods_id: int) -> GoodsRelatedItem:
     if row is None:
         raise ValueError("Goods not found")
     goods, media, artist, image = row
+    image_type_val: str | None = image.image_type if image else None
+    if image and image.image_data is not None:
+        image_data_val: str | None = base64.b64encode(image.image_data).decode("ascii")
+    else:
+        image_data_val = None
     return GoodsRelatedItem(
         goods_id=goods.id,
         media_id=goods.media_id,
@@ -245,8 +256,8 @@ def get_goods_by_id(db: Session, goods_id: int) -> GoodsRelatedItem:
         memo=goods.memo,
         is_owned=goods.is_owned,
         code_number=goods.code_number,
-        image_type=image.image_type if image else None,
-        image_data=image.image_data if image else None,
+        image_type=image_type_val,
+        image_data=image_data_val,
     )
 
 
