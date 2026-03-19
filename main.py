@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from crud import (
+    InvalidImageDataError,
     create_artist,
     create_goods,
     create_media,
@@ -192,7 +193,10 @@ def add_goods(data: GoodsCreate, db: Session = Depends(get_db)) -> dict:
     """14) goods追加."""
     if not data.media_id or not data.artist_id or not data.title:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="media_id, artist_id, title are required")
-    goods_id: int = create_goods(db, data)
+    try:
+        goods_id: int = create_goods(db, data)
+    except InvalidImageDataError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return {"id": goods_id}
 
 
@@ -205,6 +209,8 @@ def update_goods_endpoint(goods_id: int, data: GoodsUpdate, db: Session = Depend
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="media_id, artist_id, title are required")
     try:
         update_goods(db, data)
+    except InvalidImageDataError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return {"id": goods_id}

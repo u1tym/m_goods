@@ -85,7 +85,7 @@ class ArtistDetail(BaseModel):
 
 class GoodsImageInfo(BaseModel):
     image_type: Optional[str] = None
-    image_data: Optional[bytes] = None
+    image_data: Optional[str] = None
 
 
 class GoodsBase(BaseModel):
@@ -97,7 +97,7 @@ class GoodsBase(BaseModel):
     is_owned: Optional[bool] = False
     code_number: Optional[str] = None
     image_type: Optional[str] = None
-    image_data: Optional[bytes] = None
+    image_data: Optional[str] = None
 
 
 class GoodsCreate(GoodsBase):

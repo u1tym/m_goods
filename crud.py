@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Iterable, List, Sequence
 import base64
+import binascii
 
 from sqlalchemy import Select, distinct, select
 from sqlalchemy.orm import Session
@@ -23,6 +24,21 @@ from schemas import (
     PersonCreate,
     PersonSimple,
 )
+
+
+class InvalidImageDataError(ValueError):
+    """Raised when image_data is not valid Base64."""
+
+
+def _decode_image_data_or_raise(image_data: str) -> bytes:
+    try:
+        return base64.b64decode(image_data, validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise InvalidImageDataError("image_data must be a valid Base64 string") from exc
+
+
+def _has_value(value: str | None) -> bool:
+    return value is not None and value != ""
 
 
 def list_persons(db: Session) -> List[PersonSimple]:
@@ -278,10 +294,11 @@ def create_goods(db: Session, data: GoodsCreate) -> int:
     db.add(goods)
     db.flush()
 
-    if data.image_type is not None and data.image_data is not None:
+    if _has_value(data.image_type) and _has_value(data.image_data):
+        decoded_image_data = _decode_image_data_or_raise(data.image_data)
         image = GoodsImage(
             goods_id=goods.id,
-            image_data=data.image_data,
+            image_data=decoded_image_data,
             image_type=data.image_type,
             display_order=1,
         )
@@ -308,16 +325,17 @@ def update_goods(db: Session, data: GoodsUpdate) -> None:
     stmt_images: Select[tuple[GoodsImage]] = select(GoodsImage).where(GoodsImage.goods_id == goods.id)
     existing_images: Sequence[GoodsImage] = db.execute(stmt_images).scalars().all()
 
-    if data.image_type is not None and data.image_data is not None:
+    if _has_value(data.image_type) and _has_value(data.image_data):
+        decoded_image_data = _decode_image_data_or_raise(data.image_data)
         if existing_images:
             image = existing_images[0]
             image.image_type = data.image_type
-            image.image_data = data.image_data
+            image.image_data = decoded_image_data
         else:
             db.add(
                 GoodsImage(
                     goods_id=goods.id,
-                    image_data=data.image_data,
+                    image_data=decoded_image_data,
                     image_type=data.image_type,
                     display_order=1,
                 )
